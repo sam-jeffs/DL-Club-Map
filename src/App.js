@@ -453,6 +453,13 @@ const CLUBS = [
     lng: -0.6810299,
     country: "UK",
   },
+  { 
+    name: "Ashford",
+    tier: "Future",
+    lat: 51.125626,
+    lng: 0.902772,
+    country: "UK",
+  },
 ];
 
 const COUNTRIES = [
