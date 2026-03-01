@@ -423,6 +423,9 @@ const CLUBS = [
   },
   { name: "Herne Bay", tier: "New", lat: 51.3762, lng: 1.129, country: "UK" },
   { name: "Harlow", tier: "2", lat: 51.7714, lng: 0.1134, country: "UK" },
+  { name: "Dublin Riverview",       tier: "New",  lat: 53.2913,   lng: -6.1719,   country: "Ireland" },
+  { name: "Sevilla Tomares",        tier: "New",  lat: 37.3826,   lng: -6.0636,   country: "Spain" },
+  { name: "Milano Arese",           tier: "New",  lat: 45.5496,   lng: 9.0756,    country: "Italy" },
 
   // ── Coming Soon ─────────────────────────────────────────────────────────────
   {
