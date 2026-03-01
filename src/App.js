@@ -439,6 +439,20 @@ const CLUBS = [
     lng: -2.082905,
     country: "UK",
   },
+  { 
+    name: "St Neots",
+    tier: "Future",
+    lat: 52.223946,
+    lng: -0.248399,
+    country: "UK",
+  },
+  { 
+    name: "Kettering",
+    tier: "Future",
+    lat: 52.377653,
+    lng: -0.6810299,
+    country: "UK",
+  },
 ];
 
 const COUNTRIES = [
