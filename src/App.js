@@ -9,6 +9,8 @@ const TIER_CONFIG = {
   5: { color: "#A78BFA", label: "Tier 5", order: 5 },
   6: { color: "#F472B6", label: "Tier 6", order: 6 },
   7: { color: "#94A3B8", label: "Tier 7", order: 7 },
+  New: { color: "#00FF9C", label: "New (Tier TBC)", order: 8 },
+  Future: { color: "#00E5FF", label: "Coming Soon", order: 9 },
 };
 
 const TIER_DESCRIPTIONS = {
@@ -21,6 +23,8 @@ const TIER_DESCRIPTIONS = {
   5: "Regional clubs — gym, pool, essential classes.",
   6: "Value clubs — gym and pool, core fitness offer.",
   7: "Entry-level clubs — gym, pool, standard classes.",
+  New: "Recently opened — tier to be confirmed.",
+  Future: "Upcoming clubs — not yet open.",
 };
 
 const CLUBS = [
@@ -408,6 +412,26 @@ const CLUBS = [
     lng: -1.153,
     country: "UK",
   },
+
+  // ── New clubs — opened late 2025, tier TBC ──────────────────────────────────
+  {
+    name: "Colliers Wood",
+    tier: "1",
+    lat: 51.4154,
+    lng: -0.1781,
+    country: "UK",
+  },
+  { name: "Herne Bay", tier: "New", lat: 51.3762, lng: 1.129, country: "UK" },
+  { name: "Harlow", tier: "2", lat: 51.7714, lng: 0.1134, country: "UK" },
+
+  // ── Coming Soon ─────────────────────────────────────────────────────────────
+  {
+    name: "Bedford",
+    tier: "Future",
+    lat: 52.130232,
+    lng: -0.44857,
+    country: "UK",
+  },
 ];
 
 const COUNTRIES = [
@@ -415,10 +439,19 @@ const COUNTRIES = [
   ...Array.from(new Set(CLUBS.map((c) => c.country))).sort(),
 ];
 
-function makeSvgIcon(L, color, isSuper) {
-  const shape = isSuper
-    ? `<polygon points="9,1.5 11.2,6.5 16.5,6.5 12.3,10 13.9,15.5 9,12 4.1,15.5 5.7,10 1.5,6.5 6.8,6.5" fill="${color}" stroke="#fff" stroke-width="1.2"/>`
-    : `<circle cx="9" cy="9" r="6.5" fill="${color}" stroke="#fff" stroke-width="1.5"/>`;
+function makeSvgIcon(L, color, isSuper, isFuture, isNew) {
+  let shape;
+  if (isFuture) {
+    shape = `<polygon points="9,1 17,9 9,17 1,9" fill="${color}33" stroke="${color}" stroke-width="1.5" stroke-dasharray="3,2"/>
+             <text x="9" y="13" text-anchor="middle" font-size="9" fill="${color}" font-family="system-ui">?</text>`;
+  } else if (isNew) {
+    shape = `<circle cx="9" cy="9" r="6.5" fill="${color}" stroke="#fff" stroke-width="1.5"/>
+             <text x="9" y="13" text-anchor="middle" font-size="8" fill="#000" font-family="system-ui" font-weight="bold">N</text>`;
+  } else if (isSuper) {
+    shape = `<polygon points="9,1.5 11.2,6.5 16.5,6.5 12.3,10 13.9,15.5 9,12 4.1,15.5 5.7,10 1.5,6.5 6.8,6.5" fill="${color}" stroke="#fff" stroke-width="1.2"/>`;
+  } else {
+    shape = `<circle cx="9" cy="9" r="6.5" fill="${color}" stroke="#fff" stroke-width="1.5"/>`;
+  }
   return L.divIcon({
     html: `<svg width="18" height="18" viewBox="0 0 18 18" xmlns="http://www.w3.org/2000/svg">${shape}</svg>`,
     className: "",
@@ -524,7 +557,13 @@ export default function DavidLloydMap() {
     visibleClubs.forEach((club) => {
       const cfg = TIER_CONFIG[club.tier];
       const marker = L.marker([club.lat, club.lng], {
-        icon: makeSvgIcon(L, cfg.color, club.tier === "Super"),
+        icon: makeSvgIcon(
+          L,
+          cfg.color,
+          club.tier === "Super",
+          club.tier === "Future",
+          club.tier === "New"
+        ),
         title: `David Lloyd ${club.name}`,
       });
       marker.bindPopup(
@@ -732,6 +771,29 @@ export default function DavidLloydMap() {
                         points="9,1.5 11.2,6.5 16.5,6.5 12.3,10 13.9,15.5 9,12 4.1,15.5 5.7,10 1.5,6.5 6.8,6.5"
                         fill={cfg.color}
                       />
+                    ) : tier === "Future" ? (
+                      <polygon
+                        points="9,1 17,9 9,17 1,9"
+                        fill={`${cfg.color}44`}
+                        stroke={cfg.color}
+                        strokeWidth="1.5"
+                        strokeDasharray="3,2"
+                      />
+                    ) : tier === "New" ? (
+                      <>
+                        <circle cx="9" cy="9" r="6.5" fill={cfg.color} />
+                        <text
+                          x="9"
+                          y="13"
+                          textAnchor="middle"
+                          fontSize="8"
+                          fill="#000"
+                          fontFamily="system-ui"
+                          fontWeight="bold"
+                        >
+                          N
+                        </text>
+                      </>
                     ) : (
                       <circle cx="9" cy="9" r="6.5" fill={cfg.color} />
                     )}
