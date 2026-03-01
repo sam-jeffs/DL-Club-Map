@@ -1,2 +1,3 @@
 # DL-Club-Map
-Created with CodeSandbox
+map to help find clubs in specific tiers on a map.
+Add an issue to get updates
