@@ -432,6 +432,7 @@ const CLUBS = [
     lng: -0.44857,
     country: "UK",
   },
+  { name: "Bishop's Cleeve", tier: "Future", late: 51.946908, lng: -2.082905, country: "UK",},
 ];
 
 const COUNTRIES = [
