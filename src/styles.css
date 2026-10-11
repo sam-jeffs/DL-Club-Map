@@ -150,8 +150,24 @@ body,
   font-family: inherit;
 }
 
+.report-link {
+  display: block;
+  margin: auto 10px 10px;
+  padding: 7px;
+  border: 1px dashed #2a3a55;
+  border-radius: 6px;
+  color: #94a3b8;
+  font-size: 11px;
+  text-align: center;
+  text-decoration: none;
+}
+
+.report-link:hover {
+  color: #e2e8f0;
+  border-color: #4d9de0;
+}
+
 .panel-count {
-  margin-top: auto;
   padding: 12px;
   border-top: 1px solid #1e2a40;
 }
@@ -357,6 +373,12 @@ body,
 
   .panel-count {
     display: none;
+  }
+
+  .report-link {
+    margin: 4px 10px 14px;
+    padding: 12px;
+    font-size: 13px;
   }
 
   .fab-filters {

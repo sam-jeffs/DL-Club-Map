@@ -535,6 +535,28 @@ const COUNTRIES = [
   ...Array.from(new Set(CLUBS.map((c) => c.country))).sort(),
 ];
 
+const REPORT_BASE = "https://github.com/sam-jeffs/dl-club-map/issues/new";
+
+function reportUrl(club) {
+  const title = club
+    ? `Inaccurate data: ${club.name}`
+    : "Inaccurate data on the map";
+  const body = [
+    club
+      ? `**Club:** David Lloyd ${club.name} (${club.country})\n**Currently shown as:** ${
+          TIER_CONFIG[club.tier].label
+        }`
+      : "**Club(s):** ",
+    "",
+    "**What's wrong?** (e.g. wrong tier, wrong location, club closed, club missing)",
+    "",
+    "",
+    "**What should it be?** (a link to a source helps)",
+    "",
+  ].join("\n");
+  return `${REPORT_BASE}?${new URLSearchParams({ title, body })}`;
+}
+
 function makeSvgIcon(L, color, isSuper, isFuture, isNew) {
   let shape;
   if (isFuture) {
@@ -692,6 +714,9 @@ export default function DavidLloydMap() {
             ? `<div style="font-size:11.5px;color:#111;margin-top:6px"><b>Opening:</b> ${club.opens}</div>`
             : ""
         }
+          <a href="${reportUrl(
+            club
+          )}" target="_blank" rel="noopener noreferrer" style="display:inline-block;margin-top:9px;font-size:11px;color:#4d6fd0">Report an issue with this club</a>
         </div>
       `,
         { maxWidth: 250, autoPanPadding: [16, 16] }
@@ -882,6 +907,15 @@ export default function DavidLloydMap() {
                 );
               })}
           </div>
+
+          <a
+            className="report-link"
+            href={reportUrl()}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            ⚑ Report an inaccuracy
+          </a>
 
           <div className="panel-count">
             <div style={{ fontSize: 10, color: "#4a6080" }}>Showing</div>
