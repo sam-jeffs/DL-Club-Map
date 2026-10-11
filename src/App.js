@@ -1,4 +1,5 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
+import "./styles.css";
 
 const TIER_CONFIG = {
   Super: { color: "#FFD700", label: "Super Tier", order: 0 },
@@ -218,7 +219,13 @@ const CLUBS = [
     lng: 4.9041,
     country: "Netherlands",
   },
-  { name: "Malaspina", tier: "3", lat: 41.545, lng: 2.1074, country: "Spain" },
+  {
+    name: "Milano Malaspina",
+    tier: "3",
+    lat: 45.4713,
+    lng: 9.3104,
+    country: "Italy",
+  },
   { name: "Modena", tier: "3", lat: 44.6471, lng: 10.9252, country: "Italy" },
   { name: "Kensington", tier: "4", lat: 51.4985, lng: -0.1931, country: "UK" },
   { name: "Kings Hill", tier: "4", lat: 51.2714, lng: 0.4134, country: "UK" },
@@ -262,7 +269,13 @@ const CLUBS = [
     lng: -2.6488,
     country: "UK",
   },
-  { name: "Edinburgh", tier: "4", lat: 55.9533, lng: -3.1883, country: "UK" },
+  {
+    name: "Edinburgh Corstorphine",
+    tier: "4",
+    lat: 55.9389,
+    lng: -3.3038,
+    country: "UK",
+  },
   { name: "Luton", tier: "4", lat: 51.8787, lng: -0.42, country: "UK" },
   {
     name: "Bad Homburg",
@@ -413,7 +426,7 @@ const CLUBS = [
     country: "UK",
   },
 
-  // ── New clubs — opened late 2025, tier TBC ──────────────────────────────────
+  // ── New clubs — tier TBC ───────────────────────────────────────────────────
   {
     name: "Colliers Wood",
     tier: "1",
@@ -423,45 +436,98 @@ const CLUBS = [
   },
   { name: "Herne Bay", tier: "New", lat: 51.3762, lng: 1.129, country: "UK" },
   { name: "Harlow", tier: "2", lat: 51.7714, lng: 0.1134, country: "UK" },
-  { name: "Dublin Riverview",       tier: "New",  lat: 53.2913,   lng: -6.1719,   country: "Ireland" },
-  { name: "Sevilla Tomares",        tier: "New",  lat: 37.3826,   lng: -6.0636,   country: "Spain" },
-  { name: "Milano Arese",           tier: "New",  lat: 45.5496,   lng: 9.0756,    country: "Italy" },
+  {
+    name: "Dublin Riverview",
+    tier: "New",
+    lat: 53.2913,
+    lng: -6.1719,
+    country: "Ireland",
+  },
+  {
+    name: "Sevilla Tomares",
+    tier: "New",
+    lat: 37.3826,
+    lng: -6.0636,
+    country: "Spain",
+  },
+  {
+    name: "Milano Arese",
+    tier: "New",
+    lat: 45.5496,
+    lng: 9.0756,
+    country: "Italy",
+  },
+  { name: "Chelsea", tier: "New", lat: 51.47, lng: -0.1844, country: "UK" },
+  {
+    name: "Sant Just",
+    tier: "New",
+    lat: 41.387,
+    lng: 2.0731,
+    country: "Spain",
+  },
+  {
+    name: "Gillingham",
+    tier: "New",
+    lat: 51.3754,
+    lng: 0.5736,
+    country: "UK",
+  },
+  {
+    name: "St Neots",
+    tier: "New",
+    lat: 52.223946,
+    lng: -0.248399,
+    country: "UK",
+  },
 
   // ── Coming Soon ─────────────────────────────────────────────────────────────
+  {
+    name: "Bishops Cleeve",
+    tier: "Future",
+    lat: 51.946908,
+    lng: -2.082905,
+    country: "UK",
+    opens: "8 December 2026",
+  },
+  {
+    name: "Kettering",
+    tier: "Future",
+    lat: 52.385293,
+    lng: -0.673942,
+    country: "UK",
+    opens: "22 December 2026",
+  },
+  {
+    name: "Ashford",
+    tier: "Future",
+    lat: 51.124416,
+    lng: 0.900079,
+    country: "UK",
+    opens: "Autumn 2027",
+  },
+  {
+    name: "Yeovil",
+    tier: "Future",
+    lat: 50.935453,
+    lng: -2.667574,
+    country: "UK",
+    opens: "Summer 2027",
+  },
   {
     name: "Bedford",
     tier: "Future",
     lat: 52.130232,
     lng: -0.44857,
     country: "UK",
+    opens: "TBC (in planning)",
   },
-  { 
-    name: "Bishop's Cleeve",
+  {
+    name: "Berlin Ku'damm",
     tier: "Future",
-    lat: 51.946908,
-    lng: -2.082905,
-    country: "UK",
-  },
-  { 
-    name: "St Neots",
-    tier: "Future",
-    lat: 52.223946,
-    lng: -0.248399,
-    country: "UK",
-  },
-  { 
-    name: "Kettering",
-    tier: "Future",
-    lat: 52.377653,
-    lng: -0.6810299,
-    country: "UK",
-  },
-  { 
-    name: "Ashford",
-    tier: "Future",
-    lat: 51.125626,
-    lng: 0.902772,
-    country: "UK",
+    lat: 52.5019,
+    lng: 13.3232,
+    country: "Germany",
+    opens: "TBC",
   },
 ];
 
@@ -485,10 +551,10 @@ function makeSvgIcon(L, color, isSuper, isFuture, isNew) {
   }
   return L.divIcon({
     html: `<svg width="18" height="18" viewBox="0 0 18 18" xmlns="http://www.w3.org/2000/svg">${shape}</svg>`,
-    className: "",
-    iconSize: [18, 18],
-    iconAnchor: [9, 9],
-    popupAnchor: [0, -12],
+    className: "club-marker",
+    iconSize: [28, 28],
+    iconAnchor: [14, 14],
+    popupAnchor: [0, -10],
   });
 }
 
@@ -499,6 +565,7 @@ export default function DavidLloydMap() {
   const [search, setSearch] = useState("");
   const [country, setCountry] = useState("All");
   const [mapReady, setMapReady] = useState(false);
+  const [filtersOpen, setFiltersOpen] = useState(false);
 
   const mapContainerRef = useRef(null);
   const mapRef = useRef(null);
@@ -510,11 +577,16 @@ export default function DavidLloydMap() {
     tierCounts[t] = CLUBS.filter((c) => c.tier === t).length;
   });
 
-  const visibleClubs = CLUBS.filter(
-    (c) =>
-      selectedTiers.has(c.tier) &&
-      (country === "All" || c.country === country) &&
-      (search === "" || c.name.toLowerCase().includes(search.toLowerCase()))
+  const visibleClubs = useMemo(
+    () =>
+      CLUBS.filter(
+        (c) =>
+          selectedTiers.has(c.tier) &&
+          (country === "All" || c.country === country) &&
+          (search === "" ||
+            c.name.toLowerCase().includes(search.toLowerCase()))
+      ),
+    [selectedTiers, country, search]
   );
 
   // Load Leaflet + Buy Me a Coffee button
@@ -563,10 +635,11 @@ export default function DavidLloydMap() {
   useEffect(() => {
     if (!mapReady || !mapContainerRef.current || mapRef.current) return;
     const L = leafletRef.current;
-    const map = L.map(mapContainerRef.current, { preferCanvas: true }).setView(
-      [52.5, -1.5],
-      6
-    );
+    const isMobile = window.matchMedia("(max-width: 768px)").matches;
+    const map = L.map(mapContainerRef.current, {
+      preferCanvas: true,
+      zoomControl: !isMobile,
+    }).setView([52.5, -1.5], isMobile ? 5 : 6);
     L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
       attribution:
         '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
@@ -615,14 +688,28 @@ export default function DavidLloydMap() {
           </div>
           <div style="font-size:11.5px;color:#555;line-height:1.4">${
             TIER_DESCRIPTIONS[club.tier]
-          }</div>
+          }</div>${
+          club.opens
+            ? `<div style="font-size:11.5px;color:#111;margin-top:6px"><b>Opening:</b> ${club.opens}</div>`
+            : ""
+        }
         </div>
       `,
-        { maxWidth: 250 }
+        { maxWidth: 250, autoPanPadding: [16, 16] }
       );
       layer.addLayer(marker);
     });
   }, [visibleClubs, mapReady]);
+
+  // Zoom to the matching clubs when the search or country changes
+  useEffect(() => {
+    const L = leafletRef.current;
+    const map = mapRef.current;
+    if (!L || !map || (search === "" && country === "All")) return;
+    const pts = visibleClubs.map((c) => [c.lat, c.lng]);
+    if (pts.length === 0) return;
+    map.fitBounds(L.latLngBounds(pts), { padding: [40, 40], maxZoom: 11 });
+  }, [search, country, mapReady]);
 
   const toggleTier = (tier) =>
     setSelectedTiers((prev) => {
@@ -632,231 +719,172 @@ export default function DavidLloydMap() {
     });
 
   const allOn = selectedTiers.size === Object.keys(TIER_CONFIG).length;
+  const filtersActive = !allOn || country !== "All" || search !== "";
+
+  // Close the filter sheet with Escape
+  useEffect(() => {
+    if (!filtersOpen) return;
+    const onKey = (e) => e.key === "Escape" && setFiltersOpen(false);
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [filtersOpen]);
+
+  const searchControls = (
+    <>
+      <select
+        className="control"
+        value={country}
+        onChange={(e) => setCountry(e.target.value)}
+        aria-label="Country"
+      >
+        {COUNTRIES.map((c) => (
+          <option key={c} value={c}>
+            {c}
+          </option>
+        ))}
+      </select>
+      <input
+        className="control control-search"
+        type="search"
+        value={search}
+        onChange={(e) => setSearch(e.target.value)}
+        placeholder="Search clubs…"
+        aria-label="Search clubs"
+      />
+    </>
+  );
 
   return (
-    <div
-      style={{
-        fontFamily: "system-ui,sans-serif",
-        background: "#0d1117",
-        height: "100vh",
-        display: "flex",
-        flexDirection: "column",
-        color: "#e2e8f0",
-      }}
-    >
+    <div className="app">
       {/* Header */}
-      <div
-        style={{
-          background: "#111827",
-          borderBottom: "1px solid #1e2a40",
-          padding: "11px 18px",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          gap: 12,
-          flexWrap: "wrap",
-        }}
-      >
-        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-          <div
-            style={{
-              width: 32,
-              height: 32,
-              borderRadius: 7,
-              background: "linear-gradient(135deg,#FFD700,#FF8C42)",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              fontWeight: 900,
-              fontSize: 13,
-              color: "#111",
-            }}
-          >
-            DL
-          </div>
+      <header className="header">
+        <div className="brand">
+          <div className="brand-logo">DL</div>
           <div>
-            <div style={{ fontWeight: 700, fontSize: 15 }}>
-              David Lloyd Clubs — Tier Map
-            </div>
-            <div style={{ fontSize: 11, color: "#4a6080" }}>
+            <div className="brand-title">David Lloyd Clubs — Tier Map</div>
+            <div className="brand-sub">
               {CLUBS.length} locations across UK &amp; Europe · OpenStreetMap
             </div>
           </div>
         </div>
-        <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-          <select
-            value={country}
-            onChange={(e) => setCountry(e.target.value)}
-            style={{
-              background: "#1e2a40",
-              border: "1px solid #2a3a55",
-              borderRadius: 7,
-              color: "#e2e8f0",
-              padding: "7px 10px",
-              fontSize: 13,
-              outline: "none",
-            }}
-          >
-            {COUNTRIES.map((c) => (
-              <option key={c} value={c}>
-                {c}
-              </option>
-            ))}
-          </select>
-          <input
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search clubs…"
-            style={{
-              background: "#1e2a40",
-              border: "1px solid #2a3a55",
-              borderRadius: 7,
-              color: "#e2e8f0",
-              padding: "7px 12px",
-              fontSize: 13,
-              width: 190,
-              outline: "none",
-            }}
-          />
-        </div>
-      </div>
+        <div className="header-controls">{searchControls}</div>
+      </header>
 
-      <div style={{ display: "flex", flex: 1, overflow: "hidden" }}>
-        {/* Sidebar */}
+      <div className="body">
+        {/* Backdrop for the mobile filter sheet */}
         <div
-          style={{
-            width: 210,
-            background: "#111827",
-            borderRight: "1px solid #1e2a40",
-            display: "flex",
-            flexDirection: "column",
-            overflowY: "auto",
-            flexShrink: 0,
-          }}
-        >
-          <div
-            style={{
-              padding: "11px 13px 5px",
-              fontSize: 10,
-              fontWeight: 700,
-              color: "#4a6080",
-              letterSpacing: "0.1em",
-              textTransform: "uppercase",
-            }}
-          >
-            Filter by tier
+          className={`backdrop${filtersOpen ? " open" : ""}`}
+          onClick={() => setFiltersOpen(false)}
+        />
+
+        {/* Sidebar (desktop) / bottom sheet (mobile) */}
+        <aside className={`panel${filtersOpen ? " open" : ""}`}>
+          <div className="panel-handle-row">
+            <div className="panel-handle" />
+            <button
+              className="panel-done"
+              onClick={() => setFiltersOpen(false)}
+            >
+              Done
+            </button>
           </div>
+
+          <div className="panel-controls">{searchControls}</div>
+
+          <div className="panel-heading">Filter by tier</div>
           <div style={{ padding: "0 10px 8px" }}>
             <button
+              className="select-all"
               onClick={() =>
                 setSelectedTiers(
                   allOn ? new Set() : new Set(Object.keys(TIER_CONFIG))
                 )
               }
-              style={{
-                width: "100%",
-                background: "#1e2a40",
-                border: "1px solid #2a3a55",
-                borderRadius: 6,
-                color: "#94a3b8",
-                fontSize: 11,
-                padding: "5px",
-                cursor: "pointer",
-              }}
             >
               {allOn ? "Deselect All" : "Select All"}
             </button>
           </div>
 
-          {Object.entries(TIER_CONFIG)
-            .sort((a, b) => a[1].order - b[1].order)
-            .map(([tier, cfg]) => {
-              const on = selectedTiers.has(tier);
-              return (
-                <button
-                  key={tier}
-                  onClick={() => toggleTier(tier)}
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 9,
-                    width: "100%",
-                    background: on ? `${cfg.color}15` : "transparent",
-                    border: "none",
-                    borderLeft: `3px solid ${on ? cfg.color : "transparent"}`,
-                    padding: "8px 12px",
-                    cursor: "pointer",
-                    opacity: on ? 1 : 0.35,
-                    transition: "all 0.12s",
-                    textAlign: "left",
-                  }}
-                >
-                  <svg
-                    width="13"
-                    height="13"
-                    viewBox="0 0 18 18"
-                    style={{ flexShrink: 0 }}
+          <div className="tier-list">
+            {Object.entries(TIER_CONFIG)
+              .sort((a, b) => a[1].order - b[1].order)
+              .map(([tier, cfg]) => {
+                const on = selectedTiers.has(tier);
+                return (
+                  <button
+                    key={tier}
+                    className="tier-btn"
+                    onClick={() => toggleTier(tier)}
+                    aria-pressed={on}
+                    style={{
+                      background: on ? `${cfg.color}15` : "transparent",
+                      borderLeft: `3px solid ${
+                        on ? cfg.color : "transparent"
+                      }`,
+                      opacity: on ? 1 : 0.35,
+                    }}
                   >
-                    {tier === "Super" ? (
-                      <polygon
-                        points="9,1.5 11.2,6.5 16.5,6.5 12.3,10 13.9,15.5 9,12 4.1,15.5 5.7,10 1.5,6.5 6.8,6.5"
-                        fill={cfg.color}
-                      />
-                    ) : tier === "Future" ? (
-                      <polygon
-                        points="9,1 17,9 9,17 1,9"
-                        fill={`${cfg.color}44`}
-                        stroke={cfg.color}
-                        strokeWidth="1.5"
-                        strokeDasharray="3,2"
-                      />
-                    ) : tier === "New" ? (
-                      <>
-                        <circle cx="9" cy="9" r="6.5" fill={cfg.color} />
-                        <text
-                          x="9"
-                          y="13"
-                          textAnchor="middle"
-                          fontSize="8"
-                          fill="#000"
-                          fontFamily="system-ui"
-                          fontWeight="bold"
-                        >
-                          N
-                        </text>
-                      </>
-                    ) : (
-                      <circle cx="9" cy="9" r="6.5" fill={cfg.color} />
-                    )}
-                  </svg>
-                  <div style={{ flex: 1 }}>
-                    <div
-                      style={{
-                        fontSize: 12,
-                        fontWeight: 600,
-                        color: on ? cfg.color : "#64748b",
-                      }}
+                    <svg
+                      width="13"
+                      height="13"
+                      viewBox="0 0 18 18"
+                      style={{ flexShrink: 0 }}
                     >
-                      {cfg.label}
+                      {tier === "Super" ? (
+                        <polygon
+                          points="9,1.5 11.2,6.5 16.5,6.5 12.3,10 13.9,15.5 9,12 4.1,15.5 5.7,10 1.5,6.5 6.8,6.5"
+                          fill={cfg.color}
+                        />
+                      ) : tier === "Future" ? (
+                        <polygon
+                          points="9,1 17,9 9,17 1,9"
+                          fill={`${cfg.color}44`}
+                          stroke={cfg.color}
+                          strokeWidth="1.5"
+                          strokeDasharray="3,2"
+                        />
+                      ) : tier === "New" ? (
+                        <>
+                          <circle cx="9" cy="9" r="6.5" fill={cfg.color} />
+                          <text
+                            x="9"
+                            y="13"
+                            textAnchor="middle"
+                            fontSize="8"
+                            fill="#000"
+                            fontFamily="system-ui"
+                            fontWeight="bold"
+                          >
+                            N
+                          </text>
+                        </>
+                      ) : (
+                        <circle cx="9" cy="9" r="6.5" fill={cfg.color} />
+                      )}
+                    </svg>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div
+                        style={{
+                          fontSize: 12,
+                          fontWeight: 600,
+                          color: on ? cfg.color : "#64748b",
+                        }}
+                      >
+                        {cfg.label}
+                      </div>
+                      <div style={{ fontSize: 10, color: "#4a6080" }}>
+                        {tierCounts[tier]} clubs
+                      </div>
                     </div>
-                    <div style={{ fontSize: 10, color: "#4a6080" }}>
-                      {tierCounts[tier]} clubs
-                    </div>
-                  </div>
-                  {on && (
-                    <span style={{ fontSize: 10, color: cfg.color }}>✓</span>
-                  )}
-                </button>
-              );
-            })}
+                    {on && (
+                      <span style={{ fontSize: 10, color: cfg.color }}>✓</span>
+                    )}
+                  </button>
+                );
+              })}
+          </div>
 
-          <div
-            style={{
-              marginTop: "auto",
-              padding: "12px",
-              borderTop: "1px solid #1e2a40",
-            }}
-          >
+          <div className="panel-count">
             <div style={{ fontSize: 10, color: "#4a6080" }}>Showing</div>
             <div style={{ fontSize: 22, fontWeight: 800, lineHeight: 1.1 }}>
               {visibleClubs.length}
@@ -865,70 +893,51 @@ export default function DavidLloydMap() {
               of {CLUBS.length} clubs
             </div>
           </div>
-        </div>
+        </aside>
 
         {/* Map */}
-        <div style={{ flex: 1, position: "relative" }}>
-          <div
-            ref={mapContainerRef}
-            style={{ width: "100%", height: "100%" }}
-          />
+        <main className="map-wrap">
+          <div ref={mapContainerRef} className="map" />
 
           {!mapReady && (
-            <div
-              style={{
-                position: "absolute",
-                inset: 0,
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                background: "#0d1117",
-                flexDirection: "column",
-                gap: 10,
-                color: "#4a6080",
-              }}
-            >
+            <div className="map-loading">
               <div style={{ fontSize: 30 }}>🗺️</div>
               <div style={{ fontSize: 14 }}>Loading map…</div>
             </div>
           )}
 
-          {/* Buy Me a Coffee — bottom left, above OSM attribution */}
-          <div
-            style={{
-              position: "absolute",
-              bottom: 32,
-              left: 16,
-              zIndex: 1000,
-              pointerEvents: "auto",
-            }}
+          {/* Mobile-only floating filter button */}
+          <button
+            className="fab-filters"
+            onClick={() => setFiltersOpen(true)}
+            aria-expanded={filtersOpen}
           >
-            <a
-              href="https://www.buymeacoffee.com/salmoncode"
-              target="_blank"
-              rel="noopener noreferrer"
-              style={{
-                display: "inline-flex",
-                alignItems: "center",
-                gap: 8,
-                background: "#5F7FFF",
-                color: "#ffffff",
-                border: "1px solid #000",
-                borderRadius: 8,
-                padding: "8px 16px",
-                fontFamily: "'Cookie', cursive",
-                fontSize: 18,
-                fontWeight: 400,
-                textDecoration: "none",
-                boxShadow: "0 2px 8px rgba(0,0,0,0.3)",
-                whiteSpace: "nowrap",
-              }}
-            >
-              <span style={{ fontSize: 20 }}>☕</span>
-              Buy me a coffee
-            </a>
-          </div>
-        </div>
+            <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true">
+              <path
+                d="M3 5h18M6 12h12M10 19h4"
+                stroke="currentColor"
+                strokeWidth="2.5"
+                strokeLinecap="round"
+              />
+            </svg>
+            Filters
+            <span className="fab-count">
+              {visibleClubs.length}
+              {filtersActive && <span className="fab-dot" />}
+            </span>
+          </button>
+
+          {/* Buy Me a Coffee — bottom left, above OSM attribution */}
+          <a
+            className="bmc"
+            href="https://www.buymeacoffee.com/salmoncode"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <span className="bmc-cup">☕</span>
+            <span className="bmc-text">Buy me a coffee</span>
+          </a>
+        </main>
       </div>
 
       {/* Load Cookie font for the BMC button style */}
