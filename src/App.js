@@ -516,10 +516,10 @@ const CLUBS = [
   {
     name: "Bedford",
     tier: "Future",
-    lat: 52.130232,
-    lng: -0.44857,
+    lat: 52.1277,
+    lng: -0.4499,
     country: "UK",
-    opens: "TBC (in planning)",
+    opens: "TBC (former Oasis Beach Pool site, in planning)",
   },
   {
     name: "Berlin Ku'damm",
