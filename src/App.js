@@ -457,7 +457,6 @@ const CLUBS = [
     lng: 9.0677,
     country: "Italy",
   },
-  { name: "Chelsea", tier: "New", lat: 51.47, lng: -0.1844, country: "UK" },
   {
     name: "Sant Just",
     tier: "New",
