@@ -535,6 +535,21 @@ const COUNTRIES = [
   ...Array.from(new Set(CLUBS.map((c) => c.country))).sort(),
 ];
 
+// Straight-line distance in miles
+function milesBetween(lat1, lng1, lat2, lng2) {
+  const r = Math.PI / 180;
+  const a =
+    Math.sin(((lat2 - lat1) * r) / 2) ** 2 +
+    Math.cos(lat1 * r) *
+      Math.cos(lat2 * r) *
+      Math.sin(((lng2 - lng1) * r) / 2) ** 2;
+  return 2 * 3958.8 * Math.asin(Math.sqrt(a));
+}
+
+function formatMiles(mi) {
+  return mi < 10 ? `${mi.toFixed(1)} mi` : `${Math.round(mi)} mi`;
+}
+
 const REPORT_BASE = "https://github.com/sam-jeffs/dl-club-map/issues/new";
 
 function reportUrl(club) {
@@ -587,11 +602,17 @@ export default function DavidLloydMap() {
   const [country, setCountry] = useState("All");
   const [mapReady, setMapReady] = useState(false);
   const [filtersOpen, setFiltersOpen] = useState(false);
+  const [userPos, setUserPos] = useState(null);
+  const [locating, setLocating] = useState(false);
+  const [locError, setLocError] = useState("");
+  const [showNearest, setShowNearest] = useState(false);
 
   const mapContainerRef = useRef(null);
   const mapRef = useRef(null);
   const layerRef = useRef(null);
   const leafletRef = useRef(null);
+  const markersRef = useRef(new Map());
+  const userLayerRef = useRef(null);
 
   const tierCounts = {};
   Object.keys(TIER_CONFIG).forEach((t) => {
@@ -667,6 +688,7 @@ export default function DavidLloydMap() {
       maxZoom: 19,
     }).addTo(map);
     const layer = L.layerGroup().addTo(map);
+    userLayerRef.current = L.layerGroup().addTo(map);
     mapRef.current = map;
     layerRef.current = layer;
   }, [mapReady]);
@@ -679,6 +701,7 @@ export default function DavidLloydMap() {
     if (!L || !map || !layer) return;
 
     layer.clearLayers();
+    markersRef.current.clear();
     visibleClubs.forEach((club) => {
       const cfg = TIER_CONFIG[club.tier];
       const marker = L.marker([club.lat, club.lng], {
@@ -713,6 +736,12 @@ export default function DavidLloydMap() {
           club.opens
             ? `<div style="font-size:11.5px;color:#111;margin-top:6px"><b>Opening:</b> ${club.opens}</div>`
             : ""
+        }${
+          userPos
+            ? `<div style="font-size:11.5px;color:#111;margin-top:6px"><b>Distance:</b> ${formatMiles(
+                milesBetween(userPos.lat, userPos.lng, club.lat, club.lng)
+              )} (straight line)</div>`
+            : ""
         }
           <a href="${reportUrl(
             club
@@ -722,8 +751,106 @@ export default function DavidLloydMap() {
         { maxWidth: 250, autoPanPadding: [16, 16] }
       );
       layer.addLayer(marker);
+      markersRef.current.set(club.name, marker);
     });
-  }, [visibleClubs, mapReady]);
+  }, [visibleClubs, mapReady, userPos]);
+
+  // Nearest visible clubs to the user's location
+  const nearest = useMemo(() => {
+    if (!userPos) return [];
+    return visibleClubs
+      .map((c) => ({
+        club: c,
+        miles: milesBetween(userPos.lat, userPos.lng, c.lat, c.lng),
+      }))
+      .sort((a, b) => a.miles - b.miles)
+      .slice(0, 3);
+  }, [userPos, visibleClubs]);
+
+  // Draw the user's location
+  useEffect(() => {
+    const L = leafletRef.current;
+    const layer = userLayerRef.current;
+    if (!L || !layer) return;
+    layer.clearLayers();
+    if (!userPos) return;
+    if (userPos.accuracy < 2000) {
+      L.circle([userPos.lat, userPos.lng], {
+        radius: userPos.accuracy,
+        color: "#2b7bff",
+        weight: 1,
+        fillOpacity: 0.12,
+        interactive: false,
+      }).addTo(layer);
+    }
+    L.circleMarker([userPos.lat, userPos.lng], {
+      radius: 8,
+      color: "#fff",
+      weight: 3,
+      fillColor: "#2b7bff",
+      fillOpacity: 1,
+    })
+      .bindPopup("You are here")
+      .addTo(layer);
+  }, [userPos, mapReady]);
+
+  const locateMe = () => {
+    setLocError("");
+    if (!navigator.geolocation) {
+      setLocError("Location isn't supported by this browser.");
+      return;
+    }
+    setLocating(true);
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        setLocating(false);
+        const here = {
+          lat: pos.coords.latitude,
+          lng: pos.coords.longitude,
+          accuracy: pos.coords.accuracy,
+        };
+        setUserPos(here);
+        setShowNearest(true);
+        // Zoom to show the user and their closest few clubs
+        const L = leafletRef.current;
+        const map = mapRef.current;
+        if (!L || !map) return;
+        const closest = visibleClubs
+          .map((c) => [
+            milesBetween(here.lat, here.lng, c.lat, c.lng),
+            [c.lat, c.lng],
+          ])
+          .sort((a, b) => a[0] - b[0])
+          .slice(0, 3)
+          .map((x) => x[1]);
+        // Leave room for the nearest-clubs card (top-right on desktop,
+        // across the top on mobile) and the mobile buttons along the bottom
+        const isMobile = window.matchMedia("(max-width: 768px)").matches;
+        map.fitBounds(L.latLngBounds([[here.lat, here.lng], ...closest]), {
+          paddingTopLeft: isMobile ? [40, 240] : [60, 60],
+          paddingBottomRight: isMobile ? [40, 110] : [320, 60],
+          maxZoom: 13,
+        });
+      },
+      (err) => {
+        setLocating(false);
+        setLocError(
+          err.code === err.PERMISSION_DENIED
+            ? "Location permission was denied. You can allow it in your browser settings."
+            : "Couldn't get your location. Please try again."
+        );
+      },
+      { enableHighAccuracy: true, timeout: 15000, maximumAge: 60000 }
+    );
+  };
+
+  const goToClub = (club) => {
+    const map = mapRef.current;
+    const marker = markersRef.current.get(club.name);
+    if (!map || !marker) return;
+    map.setView([club.lat, club.lng], Math.max(map.getZoom(), 12));
+    marker.openPopup();
+  };
 
   // Zoom to the matching clubs when the search or country changes
   useEffect(() => {
@@ -936,6 +1063,88 @@ export default function DavidLloydMap() {
             <div className="map-loading">
               <div style={{ fontSize: 30 }}>🗺️</div>
               <div style={{ fontSize: 14 }}>Loading map…</div>
+            </div>
+          )}
+
+          {/* Locate me */}
+          <button
+            className={`locate-btn${locating ? " busy" : ""}${
+              userPos ? " active" : ""
+            }`}
+            onClick={locateMe}
+            disabled={locating}
+            aria-label="Show my location and nearest clubs"
+            title="Show my location and nearest clubs"
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true">
+              <circle
+                cx="12"
+                cy="12"
+                r="7"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+              />
+              <circle cx="12" cy="12" r="3" fill="currentColor" />
+              <path
+                d="M12 1v4M12 19v4M1 12h4M19 12h4"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+              />
+            </svg>
+          </button>
+
+          {locError && (
+            <div className="map-card map-card-error" role="alert">
+              <span>{locError}</span>
+              <button
+                className="map-card-close"
+                onClick={() => setLocError("")}
+                aria-label="Dismiss"
+              >
+                ×
+              </button>
+            </div>
+          )}
+
+          {showNearest && !locError && userPos && (
+            <div className="map-card">
+              <div className="map-card-head">
+                <span>Nearest clubs</span>
+                <button
+                  className="map-card-close"
+                  onClick={() => setShowNearest(false)}
+                  aria-label="Close"
+                >
+                  ×
+                </button>
+              </div>
+              {nearest.length === 0 ? (
+                <div className="nearest-empty">
+                  No clubs match your filters.
+                </div>
+              ) : (
+                nearest.map(({ club, miles }) => (
+                  <button
+                    key={club.name}
+                    className="nearest-row"
+                    onClick={() => goToClub(club)}
+                  >
+                    <span
+                      className="nearest-dot"
+                      style={{ background: TIER_CONFIG[club.tier].color }}
+                    />
+                    <span className="nearest-name">
+                      {club.name}
+                      <span className="nearest-tier">
+                        {TIER_CONFIG[club.tier].label}
+                      </span>
+                    </span>
+                    <span className="nearest-dist">{formatMiles(miles)}</span>
+                  </button>
+                ))
+              )}
             </div>
           )}
 

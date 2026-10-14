@@ -229,6 +229,145 @@ body,
   font-size: 20px;
 }
 
+/* ── Locate me + nearest clubs ──────────────────────────────────────────── */
+
+.locate-btn {
+  position: absolute;
+  top: 80px; /* below Leaflet's zoom buttons */
+  left: 10px;
+  z-index: 1000;
+  width: 34px;
+  height: 34px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #fff;
+  color: #333;
+  border: 2px solid rgba(0, 0, 0, 0.2);
+  border-radius: 4px;
+  background-clip: padding-box;
+  cursor: pointer;
+  padding: 0;
+}
+
+.locate-btn:hover {
+  background: #f4f4f4;
+}
+
+.locate-btn.active {
+  color: #2b7bff;
+}
+
+.locate-btn.busy svg {
+  animation: locate-pulse 1s ease-in-out infinite;
+}
+
+@keyframes locate-pulse {
+  50% {
+    opacity: 0.3;
+  }
+}
+
+.map-card {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  z-index: 1000;
+  width: 270px;
+  background: #111827;
+  border: 1px solid #2a3a55;
+  border-radius: 10px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.45);
+  padding: 8px;
+  color: #e2e8f0;
+}
+
+.map-card-error {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  font-size: 13px;
+  padding: 10px 8px 10px 12px;
+}
+
+.map-card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 4px 4px 6px;
+  font-size: 10px;
+  font-weight: 700;
+  color: #4a6080;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.map-card-close {
+  background: none;
+  border: none;
+  color: #94a3b8;
+  font-size: 20px;
+  line-height: 1;
+  padding: 2px 6px;
+  cursor: pointer;
+  margin-left: auto;
+}
+
+.nearest-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  background: none;
+  border: none;
+  border-radius: 6px;
+  padding: 8px 6px;
+  color: inherit;
+  font-family: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.nearest-row:hover {
+  background: #1e2a40;
+}
+
+.nearest-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.nearest-name {
+  flex: 1;
+  min-width: 0;
+  font-size: 13px;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.nearest-tier {
+  display: block;
+  font-size: 11px;
+  font-weight: 400;
+  color: #64748b;
+}
+
+.nearest-dist {
+  font-size: 12px;
+  color: #94a3b8;
+  white-space: nowrap;
+}
+
+.nearest-empty {
+  font-size: 12px;
+  color: #94a3b8;
+  padding: 6px;
+}
+
 /* ── Mobile ─────────────────────────────────────────────────────────────── */
 
 @media (max-width: 768px) {
@@ -419,6 +558,40 @@ body,
     height: 8px;
     border-radius: 50%;
     background: #4d9de0;
+  }
+
+  /* Locate button sits bottom-right, clear of the attribution */
+  .locate-btn {
+    top: auto;
+    left: auto;
+    right: 12px;
+    bottom: calc(28px + env(safe-area-inset-bottom));
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    border: 1px solid #2a3a55;
+    background: #111827;
+    color: #e2e8f0;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.45);
+  }
+
+  .locate-btn:hover {
+    background: #111827;
+  }
+
+  .locate-btn.active {
+    color: #4d9de0;
+  }
+
+  /* Nearest-clubs card spans the top, leaving room for the coffee button */
+  .map-card {
+    left: 12px;
+    right: 68px;
+    width: auto;
+  }
+
+  .nearest-row {
+    padding: 10px 6px;
   }
 
   /* Coffee button shrinks to an icon so it doesn't crowd the map */
